@@ -90,7 +90,7 @@ public class Booking {
         System.out.println("\n╔══════════════════════════════════════════════════════╗");
         System.out.println("║         รายละเอียดการจองบ้านพัก                    ║");
         System.out.println("╚══════════════════════════════════════════════════════╝");
-        System.out.println("หมายเลขการจอง: " + bookingId);
+        System.out.println("หมายเลขการจอง: " + bookingId );
         System.out.println("บ้านหมายเลข: " + house.getHouseNumber());
         System.out.println("วันที่เข้าพัก: " + checkInDate.format(formatter));
         System.out.println("วันที่คืนบ้าน: " + checkOutDate.format(formatter));
