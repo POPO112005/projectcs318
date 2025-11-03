@@ -86,7 +86,7 @@ public class BookingSystem {
     }
     
     /**
-     * สร้างการจองใหม่
+     * สร้างการจองใหม่ (ยังไม่ยืนยัน - รอชำระเงิน)
      */
     public Booking createBooking(House house, Customer customer, 
                                  LocalDate checkInDate, LocalDate checkOutDate) {
@@ -96,9 +96,18 @@ public class BookingSystem {
             return null;
         }
         
+        // สร้าง Booking object แต่ยังไม่เพิ่มเข้า list (รอชำระเงินก่อน)
         Booking booking = new Booking(house, customer, checkInDate, checkOutDate);
-        bookings.add(booking);
         return booking;
+    }
+    
+    /**
+     * ยืนยันการจอง (เรียกหลังชำระเงินสำเร็จแล้ว)
+     */
+    public void confirmBooking(Booking booking) {
+        if (booking != null && !bookings.contains(booking)) {
+            bookings.add(booking);
+        }
     }
     
     /**
@@ -114,6 +123,8 @@ public class BookingSystem {
             booking.setPaid(true);
             // อัพเดทสถานะบ้าน
             booking.getHouse().setAvailable(false);
+            // ยืนยันการจอง - เพิ่มเข้า list
+            confirmBooking(booking);
             System.out.println("\n✓ ชำระเงินสำเร็จ!");
             return true;
         } else {
