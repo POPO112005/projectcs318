@@ -193,57 +193,72 @@ public class SimpleBookingGUI extends JFrame {
     private void processPayment(Booking booking) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         
-        String info = String.format(
-            "ข้อมูลการจอง:\n\n" +
-            "บ้านหมายเลข: %d\n" +
-            "วันที่: %s ถึง %s\n" +
-            "จำนวนวัน: %d วัน\n" +
-            "ราคาต่อวัน: %.2f บาท\n\n" +
-            "ยอดชำระทั้งหมด: %.2f บาท\n\n" +
-            "กรุณาพิมพ์จำนวนเงินที่ชำระ:",
-            booking.getHouse().getHouseNumber(),
-            booking.getCheckInDate().format(formatter),
-            booking.getCheckOutDate().format(formatter),
-            booking.getNumberOfDays(),
-            booking.getHouse().getPricePerDay(),
-            booking.getTotalPrice()
-        );
+        boolean paymentSuccess = false;
         
-        String paymentStr = JOptionPane.showInputDialog(this, info, "ชำระเงิน", JOptionPane.QUESTION_MESSAGE);
-        
-        if (paymentStr == null) return;
-        
-        try {
-            double payment = Double.parseDouble(paymentStr);
-            if (bookingSystem.processPayment(booking, payment)) {
-                // แสดงยืนยัน
-                String confirmation = String.format(
-                    "จองสำเร็จ!\n\n" +
-                    "หมายเลขการจอง: %d\n" +
-                    "บ้านหมายเลข: %d\n" +
-                    "ชื่อผู้จอง: %s\n" +
-                    "วันที่: %s ถึง %s\n" +
-                    "จำนวนวัน: %d วัน\n" +
-                    "ยอดชำระ: %.2f บาท",
-                    booking.getBookingId(),
-                    booking.getHouse().getHouseNumber(),
-                    booking.getCustomer().getFullName(),
-                    booking.getCheckInDate().format(formatter),
-                    booking.getCheckOutDate().format(formatter),
-                    booking.getNumberOfDays(),
-                    booking.getTotalPrice()
-                );
-                
-                JOptionPane.showMessageDialog(this, confirmation, "การจองเสร็จสมบูรณ์", JOptionPane.INFORMATION_MESSAGE);
-                viewHouses(); // รีเฟรชสถานะ
-            } else {
-                JOptionPane.showMessageDialog(this,
-                    String.format("จำนวนเงินไม่ถูกต้อง\nต้องชำระ: %.2f บาท", booking.getTotalPrice()),
-                    "ข้อผิดพลาด",
-                    JOptionPane.ERROR_MESSAGE);
+        while (!paymentSuccess) {
+            String info = String.format(
+                "ข้อมูลการจอง:\n\n" +
+                "บ้านหมายเลข: %d\n" +
+                "วันที่: %s ถึง %s\n" +
+                "จำนวนวัน: %d วัน\n" +
+                "ราคาต่อวัน: %.2f บาท\n\n" +
+                "ยอดชำระทั้งหมด: %.2f บาท\n\n" +
+                "กรุณาพิมพ์จำนวนเงินที่ชำระ:",
+                booking.getHouse().getHouseNumber(),
+                booking.getCheckInDate().format(formatter),
+                booking.getCheckOutDate().format(formatter),
+                booking.getNumberOfDays(),
+                booking.getHouse().getPricePerDay(),
+                booking.getTotalPrice()
+            );
+            
+            String paymentStr = JOptionPane.showInputDialog(this, info, "ชำระเงิน", JOptionPane.QUESTION_MESSAGE);
+            
+            // ถ้ากด Cancel ให้ออกจากลูป
+            if (paymentStr == null) {
+                return;
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "กรุณาใส่ตัวเลข", "ข้อผิดพลาด", JOptionPane.ERROR_MESSAGE);
+            
+            try {
+                double payment = Double.parseDouble(paymentStr);
+                if (bookingSystem.processPayment(booking, payment)) {
+                    // แสดงยืนยัน
+                    String confirmation = String.format(
+                        "จองสำเร็จ!\n\n" +
+                        "หมายเลขการจอง: %d\n" +
+                        "บ้านหมายเลข: %d\n" +
+                        "ชื่อผู้จอง: %s\n" +
+                        "วันที่: %s ถึง %s\n" +
+                        "จำนวนวัน: %d วัน\n" +
+                        "ยอดชำระ: %.2f บาท",
+                        booking.getBookingId(),
+                        booking.getHouse().getHouseNumber(),
+                        booking.getCustomer().getFullName(),
+                        booking.getCheckInDate().format(formatter),
+                        booking.getCheckOutDate().format(formatter),
+                        booking.getNumberOfDays(),
+                        booking.getTotalPrice()
+                    );
+                    
+                    JOptionPane.showMessageDialog(this, confirmation, "การจองเสร็จสมบูรณ์", JOptionPane.INFORMATION_MESSAGE);
+                    viewHouses(); // รีเฟรชสถานะ
+                    paymentSuccess = true; // ชำระเงินสำเร็จแล้ว ออกจากลูป
+                } else {
+                    // จำนวนเงินไม่ถูกต้อง แสดงข้อความแล้วให้กรอกใหม่
+                    JOptionPane.showMessageDialog(this,
+                        String.format("จำนวนเงินไม่ถูกต้อง!\nต้องชำระ: %.2f บาท\n\nกรุณากรอกจำนวนเงินอีกครั้ง", booking.getTotalPrice()),
+                        "ข้อผิดพลาด",
+                        JOptionPane.ERROR_MESSAGE);
+                    // ไม่ต้อง return หรือ break จะวนลูปกรอกใหม่อัตโนมัติ
+                }
+            } catch (NumberFormatException ex) {
+                // กรอกไม่ใช่ตัวเลข แสดงข้อความแล้วให้กรอกใหม่
+                JOptionPane.showMessageDialog(this, 
+                    "กรุณาใส่ตัวเลขเท่านั้น!\n\nกรุณากรอกจำนวนเงินอีกครั้ง", 
+                    "ข้อผิดพลาด", 
+                    JOptionPane.ERROR_MESSAGE);
+                // ไม่ต้อง return หรือ break จะวนลูปกรอกใหม่อัตโนมัติ
+            }
         }
     }
     
